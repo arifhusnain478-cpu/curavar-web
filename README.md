@@ -4,6 +4,8 @@
 
 Built for **Built with Claude: Life Sciences** · Development track
 
+### 🔗 [Live demo → curavar-web.vercel.app](https://curavar-web.vercel.app/)
+
 - **Engine:** ACMG/AMP 2015 combining rules + 2018/2020 Bayesian points
 - **Interface:** Web (React + FastAPI) · offline and live modes
 - **Status:** Working · 24/24 engine tests · 36 API tests · 100% on validation set
