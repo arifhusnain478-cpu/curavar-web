@@ -30,6 +30,49 @@ def test_config_live_available_flips_with_key(client, monkeypatch):
     assert client.get("/config").json()["live_available"] is True
 
 
+# --------------------------- auto-routing decision --------------------------
+# The client never chooses offline vs. live — it just sends the variant. These
+# assert the server-side routing: bundled -> offline, else key -> live, else a
+# clean, distinguishable signal. None of these requests carry a `live` flag.
+
+
+def test_bundled_hgvs_classifies_offline_even_with_a_key(client, monkeypatch):
+    # A key is present, but a bundled variant must still be replayed offline
+    # (instant, no upstream). Guard the live path so an accidental route errors
+    # instead of hitting the real network.
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-test")
+    _stub_fetch(monkeypatch, EvidenceUpstreamError("live path must not be taken"))
+
+    r = client.post("/classify", json={"hgvs": "c.665C>T"})  # no live flag
+    assert r.status_code == 200
+    body = r.json()
+    assert body["mode"] == "replay"
+    assert body["id"] == "mthfr_c665CtoT"
+
+
+def test_nonbundled_hgvs_auto_routes_to_live_when_key_present(client, monkeypatch):
+    # No `live` flag, but a key is set and the variant isn't bundled -> the
+    # server must take the live path on its own. We prove it did by stubbing the
+    # live evidence fetch to fail: a 404 here can only come from the live route
+    # (the old behavior returned 422 "bundled" without an explicit live flag).
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-test")
+    _stub_fetch(monkeypatch, EvidenceNotFound("No record for 'X' in MyVariant.info."))
+
+    r = client.post("/classify", json={"hgvs": "chr17:g.999A>T"})  # no live flag
+    assert r.status_code == 404
+    assert "no record" in r.json()["detail"].lower()
+
+
+def test_nonbundled_hgvs_without_key_is_clean_and_mode_free(client, monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    r = client.post("/classify", json={"hgvs": "rs1801133"})  # no live flag, no key
+    assert r.status_code == 422
+    detail = r.json()["detail"].lower()
+    assert "bundled" in detail          # points the user back to the always-works path
+    assert "live mode" not in detail    # the offline/live "mode" concept is gone
+    assert "Traceback" not in r.text
+
+
 # --------------------------- live error paths -------------------------------
 # The corrected adapter (web/api/evidence.py) raises three DISTINCT error types;
 # we stub its fetch() to prove each maps to a distinguishable status + message,

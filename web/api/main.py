@@ -8,8 +8,10 @@ classification logic lives in the ``curavar`` package; this layer only routes,
 validates, and serializes.
 
 The Anthropic API key stays server-side: it is read from the environment inside
-``curavar.llm`` and is never sent to or accepted from the browser. The default
-mode is offline replay, so the whole product is demoable with no key at all.
+``curavar.llm`` and is never sent to or accepted from the browser. Classification
+is auto-routed — a variant with a bundled evidence snapshot is replayed offline,
+anything else is looked up live when a key is present — so the whole product is
+demoable with no key at all, and the caller never picks a mode.
 
 Docs: ``/docs`` (Swagger) and ``/redoc``.
 """
@@ -95,7 +97,9 @@ async def health() -> dict:
 
 @app.get("/config", response_model=ConfigResponse, tags=["meta"])
 async def config() -> ConfigResponse:
-    """Front-end capability probe: is live mode available, how many demo cases."""
+    """Front-end capability probe: is a live lookup possible (``live_available``),
+    and how many bundled demo cases exist. The front-end uses this to guide input,
+    never to offer a mode toggle."""
     return ConfigResponse(
         version=service.TOOL_VERSION,
         live_available=service.live_available(),

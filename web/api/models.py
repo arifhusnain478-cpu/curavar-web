@@ -22,15 +22,16 @@ class ClassifyRequest(BaseModel):
     """Classify one variant.
 
     Provide exactly one of ``case_id`` / ``case_path`` / ``hgvs`` / ``variant``.
-    ``hgvs`` is matched to a bundled case for the offline demo; ``variant`` (a
-    full variant object) and unmatched ``hgvs`` require live mode + an API key.
+    Routing is automatic: an ``hgvs`` that matches a bundled snapshot is
+    classified offline; otherwise, if the server has an API key, it is looked up
+    live. The caller never has to choose offline vs. live.
     """
 
     case_id: Optional[str] = Field(None, description="Bundled case id, e.g. 'brca1_c5266dupC'.")
     case_path: Optional[str] = Field(None, description="Path to a bundled case file (confined to the data dir).")
-    hgvs: Optional[str] = Field(None, description="Free-text HGVS, e.g. 'c.5266dupC' or 'BRCA1 c.5266dupC'.")
-    variant: Optional[dict[str, Any]] = Field(None, description="Full variant object (live mode).")
-    live: bool = Field(False, description="Use live Claude reasoning + live evidence (needs ANTHROPIC_API_KEY).")
+    hgvs: Optional[str] = Field(None, description="Free-text HGVS, e.g. 'c.5266dupC' or 'BRCA1 c.5266dupC'. Auto-routed offline/live by the server.")
+    variant: Optional[dict[str, Any]] = Field(None, description="Full variant object (looked up live).")
+    live: bool = Field(False, description="Force the live path (normally the server auto-routes). Errors clearly if no ANTHROPIC_API_KEY is set.")
     strict: bool = Field(False, description="Exclude circular criteria (PP5/BP6).")
     assembly: str = Field(
         "hg38",

@@ -11,8 +11,9 @@ import { ClassifySkeleton } from "../components/Skeleton";
 import { EmptyState } from "../components/EmptyState";
 import {
   LIVE_EXAMPLES,
+  isBundledPrefix,
   isGenomicHgvs,
-  validateLiveInput,
+  routeClassifyInput,
 } from "../liveInput";
 
 export function ClassifyScreen({ config }: { config: Config | null }) {
@@ -20,15 +21,15 @@ export function ClassifyScreen({ config }: { config: Config | null }) {
   const [caseId, setCaseId] = useState("");
   const [hgvs, setHgvs] = useState("");
   const [strict, setStrict] = useState(false);
-  const [live, setLive] = useState(false);
   const [assembly, setAssembly] = useState("hg38");
 
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ClassifyResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [inputNudge, setInputNudge] = useState<string | null>(null);
   const [lastWasGenomic, setLastWasGenomic] = useState(false);
   const didAutoRun = useRef(false);
+
+  const liveAvailable = !!config?.live_available;
 
   async function run(req: ClassifyRequest) {
     setLoading(true);
@@ -54,7 +55,7 @@ export function ClassifyScreen({ config }: { config: Config | null }) {
         if (cs.length && !didAutoRun.current) {
           didAutoRun.current = true;
           setCaseId(cs[0].id);
-          run({ case_id: cs[0].id, strict: false, live: false });
+          run({ case_id: cs[0].id, strict: false });
         }
       })
       .catch((e) => setError(String(e?.message ?? e)));
@@ -64,52 +65,47 @@ export function ClassifyScreen({ config }: { config: Config | null }) {
   function pickCase(id: string) {
     setCaseId(id);
     setHgvs("");
-    setInputNudge(null);
-    run({ case_id: id, strict, live, assembly });
+    run({ case_id: id, strict });
   }
+
+  // What will happen with what's typed — decided here exactly as the server
+  // decides it, so we can guide input and preempt a request we know will fail.
+  const q = hgvs.trim();
+  const route = q ? routeClassifyInput(q, cases, liveAvailable) : null;
+  const runnable = route?.action === "offline" || route?.action === "live";
+  // Show a calm inline note only once the input has clearly diverged from every
+  // bundled variant (not while someone is mid-typing one).
+  const hint =
+    route && !runnable && !isBundledPrefix(q, cases) ? route.message ?? null : null;
+
+  // A typed variant is submittable when the server can classify it (offline or
+  // live); with an empty box, the selected bundled case is the fallback.
+  const canSubmit = q ? runnable : !!caseId;
 
   function classifyCurrent() {
-    const q = hgvs.trim();
-    // In live mode the text box IS the live-lookup identifier — validate it and
-    // block obviously-unresolvable input before spending a MyVariant.info call.
-    if (live) {
-      const check = validateLiveInput(q);
-      if (!check.ok) {
-        setInputNudge(check.message ?? "Enter a valid variant identifier.");
-        return; // no API call
-      }
-      setInputNudge(null);
-      run({ hgvs: q, strict, live, assembly });
+    if (!q) {
+      if (caseId) run({ case_id: caseId, strict, assembly });
       return;
     }
-    // Offline: the box matches a bundled variant (or the API returns a clear
-    // "no bundled match" message); a selected case is the fallback.
-    setInputNudge(null);
-    if (q) run({ hgvs: q, strict, live, assembly });
-    else if (caseId) run({ case_id: caseId, strict, live, assembly });
+    // Not classifiable (bare cDNA / unavailable): the inline hint already says
+    // why; never fire a doomed request.
+    if (!runnable) return;
+    run({ hgvs: q, strict, assembly });
   }
 
-  // One-click, known-good live variant: fill the box, ensure live is on, run.
+  // One-click, known-good live variant: fill the box and run (live is available
+  // whenever these chips are shown).
   function runExample(value: string) {
     setHgvs(value);
-    setInputNudge(null);
-    setLive(true);
-    run({ hgvs: value, strict, live: true, assembly });
+    run({ hgvs: value, strict, assembly });
   }
 
   function toggleStrict(next: boolean) {
     setStrict(next);
     if (result) {
-      const q = hgvs.trim();
-      run(
-        q
-          ? { hgvs: q, strict: next, live, assembly }
-          : { case_id: caseId, strict: next, live, assembly }
-      );
+      run(q ? { hgvs: q, strict: next, assembly } : { case_id: caseId, strict: next, assembly });
     }
   }
-
-  const canRun = !!(hgvs.trim() || caseId);
 
   return (
     <div className="wrap">
@@ -123,7 +119,7 @@ export function ClassifyScreen({ config }: { config: Config | null }) {
 
       <div className="panel-card">
         <div className="field" style={{ marginBottom: 4 }}>
-          <label>Bundled cases — click to classify</label>
+          <label>Example variants — click to classify</label>
         </div>
         <div className="chips">
           {cases.map((c) => (
@@ -146,43 +142,42 @@ export function ClassifyScreen({ config }: { config: Config | null }) {
         <div className="form-row" style={{ marginTop: 18 }}>
           <div className="field">
             <label htmlFor="hgvs">
-              {live ? "Look up a variant (rsID or genomic HGVS)" : "Or type an HGVS / rsID"}
+              {liveAvailable
+                ? "Or look up a variant — rsID, genomic HGVS, or any example above"
+                : "Or type an example variant"}
             </label>
             <input
               id="hgvs"
               type="text"
               placeholder={
-                live
-                  ? "e.g. rs1799950  ·  chr17:g.43094464T>C"
-                  : "e.g. c.665C>T (matches a bundled case)"
+                liveAvailable
+                  ? "e.g. c.665C>T  ·  rs1801133  ·  chr17:g.43094464T>C"
+                  : "e.g. c.665C>T (matches an example above)"
               }
               value={hgvs}
-              onChange={(e) => {
-                setHgvs(e.target.value);
-                if (inputNudge) setInputNudge(null);
-              }}
+              onChange={(e) => setHgvs(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && classifyCurrent()}
-              aria-invalid={!!inputNudge}
+              aria-invalid={!!hint}
             />
           </div>
           <button
             className="btn btn-lg"
             onClick={classifyCurrent}
-            disabled={loading || (!live && !canRun)}
+            disabled={loading || !canSubmit}
           >
-            {loading ? "Gathering evidence…" : live ? "Look up live" : "Classify"}
+            {loading ? "Gathering evidence…" : "Classify"}
           </button>
         </div>
 
-        {inputNudge && (
-          <div className="inputnudge" role="alert">
-            {inputNudge}
+        {hint && (
+          <div className="notice" role="status">
+            {hint}
           </div>
         )}
 
-        {live && config?.live_available && (
+        {liveAvailable && (
           <div className="examples">
-            <span className="examples-lbl">Known-good live examples:</span>
+            <span className="examples-lbl">Or try a live lookup:</span>
             {LIVE_EXAMPLES.map((ex) => (
               <button
                 key={ex.value}
@@ -206,49 +201,26 @@ export function ClassifyScreen({ config }: { config: Config | null }) {
             />
             Strict mode — exclude circular criteria (PP5/BP6)
           </label>
-          <label
-            className={`toggle ${config?.live_available ? "" : "disabled"}`}
-            title={
-              config?.live_available
-                ? "Use live Claude reasoning + live evidence"
-                : "Add ANTHROPIC_API_KEY to web/api/.env to enable live mode"
-            }
-          >
-            <input
-              type="checkbox"
-              checked={live}
-              disabled={!config?.live_available}
-              onChange={(e) => setLive(e.target.checked)}
-            />
-            Live mode {config?.live_available ? "" : "(needs API key)"}
-          </label>
         </div>
 
-        {live && (
-          <div className="livehint">
-            <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-              <b>Live mode.</b>
-              <label style={{ display: "flex", gap: 6, alignItems: "center" }}>
+        {liveAvailable && (
+          <details className="advanced">
+            <summary>Advanced</summary>
+            <div className="advbody">
+              <label className="advfield">
                 Genome build
-                <select
-                  value={assembly}
-                  onChange={(e) => setAssembly(e.target.value)}
-                  style={{ padding: "5px 8px" }}
-                >
+                <select value={assembly} onChange={(e) => setAssembly(e.target.value)}>
                   <option value="hg38">GRCh38 / hg38</option>
                   <option value="hg19">GRCh37 / hg19</option>
                 </select>
               </label>
+              <span className="advnote">
+                Only used for live lookups of variants outside the bundled set. An{" "}
+                <b>rsID</b> resolves regardless of build; a <b>genomic HGVS</b> must
+                match the selected build.
+              </span>
             </div>
-            <div style={{ marginTop: 8 }}>
-              A non-bundled variant is looked up on MyVariant.info in the selected
-              build. Best input is an <b>rsID</b> (e.g. <code>rs1801133</code>,{" "}
-              <code>rs1799950</code>) — it resolves regardless of build. A{" "}
-              <b>genomic HGVS</b> works too (e.g. <code>chr17:g.43094464T&gt;C</code>)
-              but must match the selected build. A bare cDNA change like{" "}
-              <code>c.665C&gt;T</code> can't be resolved upstream.
-            </div>
-          </div>
+          </details>
         )}
       </div>
 
@@ -256,8 +228,7 @@ export function ClassifyScreen({ config }: { config: Config | null }) {
         <>
           <div className="loading">
             <span className="spinner" />
-            Collecting evidence → proposing criteria → adjudicating → applying the
-            combining rules…
+            Gathering evidence…
           </div>
           <ClassifySkeleton />
         </>
@@ -266,15 +237,15 @@ export function ClassifyScreen({ config }: { config: Config | null }) {
       {error && !loading && (
         <div className="error">
           <strong>Couldn't classify.</strong> {error}
-          {live && lastWasGenomic && (
+          {lastWasGenomic && (
             <div style={{ marginTop: 8 }}>
               Tip: this genomic HGVS was looked up in{" "}
               <b>{assembly === "hg38" ? "GRCh38" : "GRCh37"}</b>. If it's the wrong
-              build, switch the genome-build selector above and retry — or use the
-              variant's <b>rsID</b>, which resolves regardless of build.
+              build, switch the genome build under <b>Advanced</b> and retry — or use
+              the variant's <b>rsID</b>, which resolves regardless of build.
             </div>
           )}
-          {canRun && (
+          {canSubmit && (
             <div style={{ marginTop: 10 }}>
               <button className="btn ghost" onClick={classifyCurrent}>
                 Try again
@@ -289,7 +260,9 @@ export function ClassifyScreen({ config }: { config: Config | null }) {
           <section className="vstrip">
             <div className="eyebrow" style={{ fontSize: 12 }}>
               Result
-              <span className="pill">{result.mode === "live" ? "live" : "offline replay"}</span>
+              <span className="pill">
+                {result.mode === "live" ? "live evidence" : "bundled evidence"}
+              </span>
               {result.strict && <span className="pill">strict</span>}
             </div>
             <div className="vg">

@@ -15,16 +15,16 @@ export function Nav({ config }: { config: Config | null }) {
         <NavLink to="/triage" className="link">
           Triage
         </NavLink>
-        <span
-          className={`livechip ${config?.live_available ? "on" : ""}`}
-          title={
-            config?.live_available
-              ? "ANTHROPIC_API_KEY detected — live mode available"
-              : "Offline replay mode — no API key needed"
-          }
-        >
-          {config?.live_available ? "● live ready" : "○ offline replay"}
-        </span>
+        {/* A quiet positive indicator when live lookups are possible. No
+            "mode" is ever shown to the user — bundled cases always work. */}
+        {config?.live_available && (
+          <span
+            className="livechip on"
+            title="A server API key is set — variants outside the bundled set are looked up live automatically."
+          >
+            ● live evidence
+          </span>
+        )}
       </div>
     </nav>
   );

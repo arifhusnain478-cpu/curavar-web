@@ -67,3 +67,83 @@ export function validateLiveInput(raw: string): LiveInputCheck {
     message: `That doesn't look like an rsID or a genomic HGVS. ${TRY}`,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Auto-routing: the user never chooses offline vs. live. Given what they typed
+// and the server's capability, decide what will happen — mirroring the backend
+// so the UI can guide input and preempt a doomed request. Pure + testable.
+// ---------------------------------------------------------------------------
+
+// Just the case fields the matcher needs (a subset of CaseSummary).
+export interface BundledCase {
+  gene: string;
+  hgvs_c: string;
+  label: string;
+}
+
+function normHgvs(s: string): string {
+  return (s || "").replace(/\s+/g, "").toLowerCase();
+}
+
+// Mirrors the backend's service._match_hgvs: a normalized query matches a
+// bundled case by its cDNA, "GENE cDNA", "GENE:cDNA", or full label.
+export function matchesBundledCase(q: string, cases: BundledCase[]): boolean {
+  const nq = normHgvs(q);
+  if (!nq) return false;
+  return cases.some((c) => {
+    const candidates = [
+      normHgvs(c.hgvs_c),
+      normHgvs(`${c.gene}${c.hgvs_c}`),
+      normHgvs(`${c.gene}:${c.hgvs_c}`),
+      normHgvs(c.label),
+    ];
+    return candidates.includes(nq);
+  });
+}
+
+// A strict prefix of some bundled candidate — i.e. the user is part-way through
+// typing a bundled variant (several bundled cases are themselves bare cDNAs, so
+// we must not flash a "can't be looked up" nudge at them mid-type).
+export function isBundledPrefix(q: string, cases: BundledCase[]): boolean {
+  const nq = normHgvs(q);
+  if (!nq) return false;
+  return cases.some((c) => {
+    const candidates = [
+      normHgvs(c.hgvs_c),
+      normHgvs(`${c.gene}${c.hgvs_c}`),
+      normHgvs(`${c.gene}:${c.hgvs_c}`),
+      normHgvs(c.label),
+    ];
+    return candidates.some((cand) => cand.startsWith(nq) && cand !== nq);
+  });
+}
+
+export const LIVE_UNAVAILABLE_MSG =
+  "Live lookup isn't enabled here — try one of the example variants above.";
+
+export type ClassifyAction = "offline" | "live" | "guide" | "unavailable";
+
+export interface ClassifyRoute {
+  action: ClassifyAction;
+  // Present for "guide" (input-shape nudge) and "unavailable" (calm capability
+  // note). Absent for "offline"/"live", which just run.
+  message?: string;
+}
+
+// Decide how a typed query will be classified, and whether to nudge first.
+//   offline     — matches a bundled snapshot; runs instantly, always available
+//   live        — resolvable identifier + a server key; the backend looks it up
+//   guide       — a bare cDNA / malformed id; show a friendly hint, no request
+//   unavailable — not bundled and no server key; show one calm line, no request
+export function routeClassifyInput(
+  raw: string,
+  cases: BundledCase[],
+  liveAvailable: boolean
+): ClassifyRoute {
+  const q = (raw || "").trim();
+  if (matchesBundledCase(q, cases)) return { action: "offline" };
+  if (!liveAvailable) return { action: "unavailable", message: LIVE_UNAVAILABLE_MSG };
+  const check = validateLiveInput(q);
+  if (!check.ok) return { action: "guide", message: check.message };
+  return { action: "live" };
+}

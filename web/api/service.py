@@ -267,7 +267,7 @@ def run_live(
     """
     if not live_available():
         raise CaseError(
-            "Live mode needs an Anthropic API key on the server. Add it to "
+            "Live lookup needs an Anthropic API key on the server. Add it to "
             "web/api/.env (ANTHROPIC_API_KEY=…) and restart the API.",
             status=400,
         )
@@ -340,21 +340,27 @@ def classify(
         _, result = run_bundled(path, strict=strict)
         return serialize_result(result, variant_id=cid, mode="replay", strict=strict)
 
-    # 2. free-text HGVS
+    # 2. free-text HGVS — auto-routed. The caller just sends the variant; the
+    #    server decides how to classify it:
+    #      a) it matches a bundled evidence snapshot  -> classify offline, instantly
+    #      b) otherwise, if a server key is configured -> do the live lookup
+    #      c) otherwise                                -> a clean, distinguishable signal
+    #    (``live=True`` still force-selects the live path so an explicit request
+    #    surfaces the "needs a key" error rather than silently falling through.)
     if hgvs:
         match = _match_hgvs(hgvs)
         if match:
             _, result = run_bundled(match.path, strict=strict)
             return serialize_result(result, variant_id=match.id, mode="replay", strict=strict)
-        if live:
+        if live or live_available():
             # run_live raises a clear 400 if the server has no API key.
             v = Variant(gene="", hgvs_c=hgvs, hgvs_p="", genome_build="", coordinate=hgvs)
             result = run_live(v, query_id=hgvs, strict=strict, assembly=assembly)
             return serialize_result(result, variant_id=_slug(hgvs), mode="live", strict=strict)
         raise CaseError(
-            f"No bundled evidence snapshot matches '{hgvs}'. Offline replay classifies "
-            f"the bundled variants ({', '.join(c.hgvs_c for c in list_cases())}). "
-            "Enable Live mode (with a server API key) to classify an arbitrary variant.",
+            f"'{hgvs}' isn't one of the bundled example variants, and live lookup "
+            f"isn't enabled on this server. Try a bundled variant "
+            f"({', '.join(c.hgvs_c for c in list_cases())}).",
             status=422,
         )
 

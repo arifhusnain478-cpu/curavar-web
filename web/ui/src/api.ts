@@ -34,9 +34,9 @@ async function j<T>(res: Response): Promise<T> {
 export interface ClassifyRequest {
   case_id?: string;
   hgvs?: string;
-  live?: boolean;
   strict?: boolean;
   assembly?: string; // "hg38" (GRCh38, default) | "hg19" (GRCh37) — live lookups
+  // No `live` flag: the server auto-routes (bundled → offline, else → live).
 }
 
 export const api = {
