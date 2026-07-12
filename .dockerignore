@@ -1,0 +1,11 @@
+# Keep the API build context (repo root) small and reproducible.
+**/node_modules
+**/dist
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+web/ui
+curavar.zip
+*.egg-info
+**/.vite
+.git

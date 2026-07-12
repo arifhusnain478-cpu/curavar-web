@@ -1,0 +1,37 @@
+# CuraVar Web — run the API and UI together.
+#
+#   docker compose up --build
+#
+# Then open the app at  http://localhost:8080
+# API docs (OpenAPI/Swagger) at  http://localhost:8000/docs
+#
+# The whole product runs in offline replay mode with no API key. To enable live
+# Claude reasoning + live evidence, export ANTHROPIC_API_KEY before `up` (it is
+# passed only to the API container and never reaches the browser).
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: web/api/Dockerfile
+    image: curavar-api
+    environment:
+      # Empty by default -> offline replay. Set on the host to enable live mode.
+      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-}"
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status==200 else 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ui:
+    build:
+      context: web/ui
+      dockerfile: Dockerfile
+    image: curavar-ui
+    ports:
+      - "8080:80"
+    depends_on:
+      - api

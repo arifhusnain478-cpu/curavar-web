@@ -1,0 +1,28 @@
+{
+  "note": "Validation truth set. Each case is a set of activated ACMG/AMP criteria with the classification the 2015 combining rules define for it. These exercise all five tiers and the documented rules-vs-points divergences. Because the 2015 combining rules are deterministic given the criteria, a correct engine must reproduce every expected label exactly.",
+  "source": "ACMG/AMP 2015 combining rules (Richards et al. 2015) and worked combinations discussed in Tavtigian et al. 2018/2020 and ClinGen SVI materials.",
+  "cases": [
+    {"id": "P-01", "criteria": ["PVS1", "PS3", "PM2"], "expected": "Pathogenic"},
+    {"id": "P-02", "criteria": ["PS3", "PS4"], "expected": "Pathogenic"},
+    {"id": "P-03", "criteria": ["PS3", "PM1", "PM2", "PM5"], "expected": "Pathogenic"},
+    {"id": "P-04", "criteria": ["PVS1", "PP1", "PP3"], "expected": "Pathogenic"},
+    {"id": "P-05", "criteria": ["PS3", "PM2", "PM4", "PP1", "PP3"], "expected": "Pathogenic"},
+
+    {"id": "LP-01", "criteria": ["PVS1", "PM2"], "expected": "Likely pathogenic", "note": "Documented rules-vs-points divergence: points system scores this 10 (Pathogenic)."},
+    {"id": "LP-02", "criteria": ["PS3", "PM2"], "expected": "Likely pathogenic"},
+    {"id": "LP-03", "criteria": ["PS3", "PP1", "PP3"], "expected": "Likely pathogenic"},
+    {"id": "LP-04", "criteria": ["PM1", "PM2", "PM5"], "expected": "Likely pathogenic"},
+    {"id": "LP-05", "criteria": ["PM2", "PM4", "PP1", "PP3"], "expected": "Likely pathogenic"},
+
+    {"id": "VUS-01", "criteria": ["PM2", "PP3"], "expected": "Uncertain significance"},
+    {"id": "VUS-02", "criteria": ["PM2"], "expected": "Uncertain significance"},
+    {"id": "VUS-03", "criteria": ["PP1", "PP3"], "expected": "Uncertain significance"},
+    {"id": "VUS-04", "criteria": [], "expected": "Uncertain significance"},
+
+    {"id": "LB-01", "criteria": ["BS1", "BP4"], "expected": "Likely benign"},
+    {"id": "LB-02", "criteria": ["BP4", "BP7"], "expected": "Likely benign"},
+
+    {"id": "B-01", "criteria": ["BA1"], "expected": "Benign"},
+    {"id": "B-02", "criteria": ["BS1", "BS2"], "expected": "Benign"}
+  ]
+}

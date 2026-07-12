@@ -1,0 +1,51 @@
+{
+  "case_id": "demo2_pvs1_lastexon",
+  "note": "SYNTHETIC teaching case (not a real patient variant). A nonsense variant in the LAST exon: it escapes nonsense-mediated decay and removes only a small, non-critical C-terminal region. A tool that applies PVS1 at full strength would over-call this Pathogenic. CuraVar's PVS1 decision tree downgrades it, so the honest verdict is Uncertain.",
+  "variant": {
+    "gene": "DEMO2",
+    "hgvs_c": "c.2800C>T",
+    "hgvs_p": "p.Arg934*",
+    "genome_build": "GRCh38",
+    "coordinate": "synthetic:DEMO2:c.2800C>T",
+    "inheritance": "AD (synthetic teaching gene; LoF is a disease mechanism)"
+  },
+  "pvs1_features": {
+    "consequence": "nonsense",
+    "lof_is_mechanism": true,
+    "predicted_nmd": false,
+    "in_biologically_relevant_transcript": true,
+    "removes_critical_region": false,
+    "fraction_protein_lost": 0.04,
+    "region_enriched_for_lof": false
+  },
+  "evidence": [
+    {
+      "source_type": "gene_context",
+      "source_name": "Variant annotation [synthetic]",
+      "locator": "synthetic:DEMO2:transcript",
+      "payload": {
+        "consequence": "nonsense",
+        "exon": "last",
+        "escapes_nmd": true,
+        "c_terminal_fraction_lost": 0.04
+      },
+      "snippet": "Nonsense variant located in the last exon; the premature stop escapes nonsense-mediated decay and truncates ~4% of the C-terminus, a region with no known critical function.",
+      "retrieved_at": 1751500300.0
+    },
+    {
+      "source_type": "population_db",
+      "source_name": "gnomAD v4.1 [synthetic]",
+      "locator": "synthetic:DEMO2:c.2800C>T",
+      "payload": {
+        "global_af": 0.0,
+        "allele_count": 0
+      },
+      "snippet": "Absent from population databases.",
+      "retrieved_at": 1751500301.0
+    }
+  ],
+  "cassettes": {
+    "bcbed581b522d0f0": "{\n  \"proposals\": [\n    {\n      \"code\": \"PVS1\",\n      \"justification\": \"Nonsense variant in a gene where loss of function is an established disease mechanism.\",\n      \"evidence_ids\": [\n        \"E0001\"\n      ]\n    },\n    {\n      \"code\": \"PM2\",\n      \"justification\": \"Absent from gnomAD.\",\n      \"evidence_ids\": [\n        \"E0002\"\n      ]\n    }\n  ]\n}",
+    "ec1ffd7bb25c2206": "{\n  \"kept\": [\n    {\n      \"code\": \"PVS1\",\n      \"justification\": \"Null (nonsense) variant; LoF is a disease mechanism.\",\n      \"evidence_ids\": [\n        \"E0001\"\n      ]\n    },\n    {\n      \"code\": \"PM2\",\n      \"justification\": \"Absent from population databases.\",\n      \"evidence_ids\": [\n        \"E0002\"\n      ]\n    }\n  ],\n  \"removed\": [],\n  \"conflict_note\": \"\"\n}"
+  }
+}

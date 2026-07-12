@@ -1,0 +1,1 @@
+"""CuraVar Web API package."""

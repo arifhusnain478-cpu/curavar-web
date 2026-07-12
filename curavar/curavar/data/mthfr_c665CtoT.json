@@ -1,0 +1,53 @@
+{
+  "case_id": "mthfr_c665CtoT",
+  "note": "Illustrative recorded snapshot for the offline demo. Representative of this common, well-characterized public polymorphism; labeled as a snapshot, not a live pull.",
+  "variant": {
+    "gene": "MTHFR",
+    "hgvs_c": "c.665C>T",
+    "hgvs_p": "p.Ala222Val",
+    "genome_build": "GRCh38",
+    "coordinate": "chr1:11796321:C>T",
+    "inheritance": "common polymorphism; no Mendelian loss-of-function mechanism"
+  },
+  "evidence": [
+    {
+      "source_type": "population_db",
+      "source_name": "gnomAD v4.1",
+      "locator": "chr1:11796321:C>T",
+      "payload": {
+        "global_af": 0.31,
+        "max_pop_af": 0.55,
+        "homozygotes": 42000
+      },
+      "snippet": "Very common globally (global allele frequency ~31%), with tens of thousands of homozygous individuals.",
+      "retrieved_at": 1751500100.0
+    },
+    {
+      "source_type": "clinical_db",
+      "source_name": "ClinVar",
+      "locator": "VCV000003520",
+      "payload": {
+        "aggregate_assertion": "Benign",
+        "review_status_stars": 2,
+        "conflicts": false
+      },
+      "snippet": "Aggregate interpretation Benign with no conflicts across submitters.",
+      "retrieved_at": 1751500101.0
+    },
+    {
+      "source_type": "in_silico",
+      "source_name": "In-silico predictors (REVEL)",
+      "locator": "REVEL score",
+      "payload": {
+        "revel": 0.08,
+        "call": "tolerated"
+      },
+      "snippet": "Computational predictors consistently score the substitution as tolerated / benign.",
+      "retrieved_at": 1751500102.0
+    }
+  ],
+  "cassettes": {
+    "03e823ff41d54756": "{\n  \"proposals\": [\n    {\n      \"code\": \"BA1\",\n      \"justification\": \"Global allele frequency ~31% in gnomAD with tens of thousands of homozygotes, far above any benign threshold.\",\n      \"evidence_ids\": [\n        \"E0001\"\n      ]\n    },\n    {\n      \"code\": \"BP6\",\n      \"justification\": \"ClinVar aggregate interpretation is Benign with no conflicts.\",\n      \"evidence_ids\": [\n        \"E0002\"\n      ]\n    },\n    {\n      \"code\": \"BP4\",\n      \"justification\": \"In-silico predictors score the substitution as tolerated (REVEL 0.08).\",\n      \"evidence_ids\": [\n        \"E0003\"\n      ]\n    }\n  ]\n}",
+    "ce09848f79b948f9": "{\n  \"kept\": [\n    {\n      \"code\": \"BA1\",\n      \"justification\": \"gnomAD global AF ~31%, 42k homozygotes \\u2014 stand-alone benign.\",\n      \"evidence_ids\": [\n        \"E0001\"\n      ]\n    },\n    {\n      \"code\": \"BP4\",\n      \"justification\": \"REVEL 0.08, tolerated.\",\n      \"evidence_ids\": [\n        \"E0003\"\n      ]\n    }\n  ],\n  \"removed\": [\n    {\n      \"code\": \"BP6\",\n      \"reason\": \"ClinVar assertion is already reflected; BP6 (reputable source without accessible data) is redundant given BA1 is stand-alone and adds no independent evidentiary value here.\"\n    }\n  ],\n  \"conflict_note\": \"\"\n}"
+  }
+}

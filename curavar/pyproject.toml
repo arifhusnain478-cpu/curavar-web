@@ -1,0 +1,13 @@
+[project]
+name = "curavar"
+version = "0.1.0"
+description = "Auditable ACMG/AMP variant curation with Claude"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+curavar = "curavar.cli:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"

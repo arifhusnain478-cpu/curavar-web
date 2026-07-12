@@ -1,0 +1,66 @@
+{
+  "case_id": "brca1_c5266dupC",
+  "note": "Illustrative recorded snapshot for the offline demo. Evidence values are representative of this well-characterized public variant and are labeled as a snapshot, not a live database pull.",
+  "variant": {
+    "gene": "BRCA1",
+    "hgvs_c": "c.5266dupC",
+    "hgvs_p": "p.Gln1756fs",
+    "genome_build": "GRCh38",
+    "coordinate": "chr17:43057062:dupC",
+    "inheritance": "AD (loss-of-function is an established disease mechanism for BRCA1)"
+  },
+  "evidence": [
+    {
+      "source_type": "gene_context",
+      "source_name": "Gene-disease mechanism (BRCA1)",
+      "locator": "BRCA1 / hereditary breast and ovarian cancer",
+      "payload": {
+        "lof_is_mechanism": true,
+        "consequence": "frameshift",
+        "premature_stop": true
+      },
+      "snippet": "BRCA1 is a tumor-suppressor gene in which loss of function is a well-established disease mechanism; this duplication causes a frameshift and premature termination.",
+      "retrieved_at": 1751500000.0
+    },
+    {
+      "source_type": "population_db",
+      "source_name": "gnomAD v4.1",
+      "locator": "chr17:43057062:dupC",
+      "payload": {
+        "global_af": 4e-05,
+        "max_pop_af": 0.0002,
+        "homozygotes": 0
+      },
+      "snippet": "Very low allele frequency globally; founder-population enrichment noted; no homozygotes observed.",
+      "retrieved_at": 1751500001.0
+    },
+    {
+      "source_type": "clinical_db",
+      "source_name": "ClinVar",
+      "locator": "VCV000017677",
+      "payload": {
+        "aggregate_assertion": "Pathogenic",
+        "review_status_stars": 3,
+        "conflicts": false,
+        "n_submitters": 24
+      },
+      "snippet": "Multiple independent submitters assert Pathogenic with no conflicting interpretations; expert-reviewed.",
+      "retrieved_at": 1751500002.0
+    },
+    {
+      "source_type": "functional",
+      "source_name": "Functional / case data summary",
+      "locator": "curated literature summary",
+      "payload": {
+        "segregates_with_disease": true,
+        "affected_carriers_reported": "many"
+      },
+      "snippet": "Reported repeatedly in affected individuals and families with hereditary breast/ovarian cancer.",
+      "retrieved_at": 1751500003.0
+    }
+  ],
+  "cassettes": {
+    "2255ed7332fe457c": "{\n  \"proposals\": [\n    {\n      \"code\": \"PVS1\",\n      \"justification\": \"Frameshift duplication causing a premature stop in BRCA1, a gene where loss of function is an established disease mechanism.\",\n      \"evidence_ids\": [\n        \"E0001\"\n      ]\n    },\n    {\n      \"code\": \"PM2\",\n      \"justification\": \"Very low allele frequency in gnomAD (global AF ~4e-5) with no homozygotes.\",\n      \"evidence_ids\": [\n        \"E0002\"\n      ]\n    },\n    {\n      \"code\": \"PP5\",\n      \"justification\": \"ClinVar reports Pathogenic at 3-star review status from 24 submitters with no conflicts.\",\n      \"evidence_ids\": [\n        \"E0003\"\n      ]\n    },\n    {\n      \"code\": \"PP1\",\n      \"justification\": \"Reported in affected carriers, consistent with segregation.\",\n      \"evidence_ids\": [\n        \"E0004\"\n      ]\n    }\n  ]\n}",
+    "a955c9b61281c0d8": "{\n  \"kept\": [\n    {\n      \"code\": \"PVS1\",\n      \"justification\": \"Frameshift duplication -> premature stop in BRCA1 (LOF mechanism).\",\n      \"evidence_ids\": [\n        \"E0001\"\n      ]\n    },\n    {\n      \"code\": \"PM2\",\n      \"justification\": \"Very low gnomAD allele frequency, no homozygotes.\",\n      \"evidence_ids\": [\n        \"E0002\"\n      ]\n    },\n    {\n      \"code\": \"PP5\",\n      \"justification\": \"ClinVar 3-star Pathogenic, 24 submitters, no conflicts.\",\n      \"evidence_ids\": [\n        \"E0003\"\n      ]\n    }\n  ],\n  \"removed\": [\n    {\n      \"code\": \"PP1\",\n      \"reason\": \"Cited evidence describes affected carriers but does not document formal cosegregation in a pedigree; insufficient for PP1.\"\n    }\n  ],\n  \"conflict_note\": \"\"\n}"
+  }
+}

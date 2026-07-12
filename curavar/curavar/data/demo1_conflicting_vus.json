@@ -1,0 +1,65 @@
+{
+  "case_id": "demo1_conflicting_vus",
+  "note": "SYNTHETIC teaching case (not a real patient variant). Constructed to show how CuraVar handles genuinely conflicting evidence: two independent functional studies disagree.",
+  "variant": {
+    "gene": "DEMO1",
+    "hgvs_c": "c.1234G>A",
+    "hgvs_p": "p.Arg412His",
+    "genome_build": "GRCh38",
+    "coordinate": "synthetic:DEMO1:c.1234G>A",
+    "inheritance": "AD (synthetic teaching gene)"
+  },
+  "evidence": [
+    {
+      "source_type": "synthetic",
+      "source_name": "Functional assay \u2014 Lab A [synthetic]",
+      "locator": "synthetic:assayA",
+      "payload": {
+        "result": "damaging",
+        "assay": "cell-based activity",
+        "well_established": true
+      },
+      "snippet": "A well-established functional assay reports a clearly damaging effect on protein activity.",
+      "retrieved_at": 1751500200.0
+    },
+    {
+      "source_type": "population_db",
+      "source_name": "gnomAD v4.1 [synthetic]",
+      "locator": "synthetic:DEMO1:c.1234G>A",
+      "payload": {
+        "global_af": 0.0,
+        "allele_count": 0
+      },
+      "snippet": "Absent from population databases.",
+      "retrieved_at": 1751500201.0
+    },
+    {
+      "source_type": "synthetic",
+      "source_name": "Functional assay \u2014 Lab B [synthetic]",
+      "locator": "synthetic:assayB",
+      "payload": {
+        "result": "no_effect",
+        "assay": "orthogonal functional readout",
+        "well_established": true
+      },
+      "snippet": "An independent, well-established functional assay reports no measurable effect on function.",
+      "retrieved_at": 1751500202.0
+    },
+    {
+      "source_type": "synthetic",
+      "source_name": "Cohort observation [synthetic]",
+      "locator": "synthetic:cohort",
+      "payload": {
+        "seen_in_healthy_adults": true,
+        "count": 6,
+        "penetrance_expected": "high"
+      },
+      "snippet": "Observed in several healthy older adults for a condition expected to be fully penetrant.",
+      "retrieved_at": 1751500203.0
+    }
+  ],
+  "cassettes": {
+    "257eabbd5b6e4a83": "{\n  \"proposals\": [\n    {\n      \"code\": \"PS3\",\n      \"justification\": \"Well-established functional assay (Lab A) shows a damaging effect.\",\n      \"evidence_ids\": [\n        \"E0001\"\n      ]\n    },\n    {\n      \"code\": \"PM2\",\n      \"justification\": \"Absent from gnomAD.\",\n      \"evidence_ids\": [\n        \"E0002\"\n      ]\n    },\n    {\n      \"code\": \"BS3\",\n      \"justification\": \"Independent well-established functional assay (Lab B) shows no effect.\",\n      \"evidence_ids\": [\n        \"E0003\"\n      ]\n    },\n    {\n      \"code\": \"BS2\",\n      \"justification\": \"Observed in several healthy adults where high penetrance is expected.\",\n      \"evidence_ids\": [\n        \"E0004\"\n      ]\n    }\n  ]\n}",
+    "c1ca803a2ec4c1db": "{\n  \"kept\": [\n    {\n      \"code\": \"PS3\",\n      \"justification\": \"Lab A functional assay: damaging.\",\n      \"evidence_ids\": [\n        \"E0001\"\n      ]\n    },\n    {\n      \"code\": \"PM2\",\n      \"justification\": \"Absent from population databases.\",\n      \"evidence_ids\": [\n        \"E0002\"\n      ]\n    },\n    {\n      \"code\": \"BS3\",\n      \"justification\": \"Lab B functional assay: no effect.\",\n      \"evidence_ids\": [\n        \"E0003\"\n      ]\n    },\n    {\n      \"code\": \"BS2\",\n      \"justification\": \"Seen in healthy adults; high penetrance expected.\",\n      \"evidence_ids\": [\n        \"E0004\"\n      ]\n    }\n  ],\n  \"removed\": [],\n  \"conflict_note\": \"Two independent well-established functional assays directly contradict each other (Lab A damaging vs Lab B no effect), and the variant is seen in healthy adults. Pathogenic and benign strong criteria are both met; this cannot be resolved to a benign or pathogenic call on current evidence.\"\n}"
+  }
+}

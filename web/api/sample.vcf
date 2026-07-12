@@ -1,0 +1,11 @@
+##fileformat=VCFv4.2
+##source=CuraVar demo VCF — matches the bundled evidence snapshots
+##reference=GRCh38
+##INFO=<ID=GENE,Number=1,Type=String,Description="Gene symbol">
+##NOTE=The ID column carries the bundled case id so offline replay can classify each record.
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+chr17	43057062	brca1_c5266dupC	C	CC	.	PASS	GENE=BRCA1
+chr1	11796321	mthfr_c665CtoT	C	T	.	PASS	GENE=MTHFR
+1	1234000	demo1_conflicting_vus	G	A	.	PASS	GENE=DEMO1
+1	2800000	demo2_pvs1_lastexon	C	T	.	PASS	GENE=DEMO2
+chr7	117559593	.	G	A	.	PASS	GENE=CFTR
